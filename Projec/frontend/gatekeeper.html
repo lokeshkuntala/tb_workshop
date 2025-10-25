@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gatekeeper - Gate Pass System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Gate Pass Management System</h1>
+        <p>Gatekeeper Portal</p>
+    </div>
+
+    <div class="container">
+        <div class="form-container">
+            <h2>Verify Gate Pass</h2>
+            <div class="form-group">
+                <label for="passId">Enter Pass ID to Verify</label>
+                <input type="number" id="passId" placeholder="Enter pass ID" required>
+            </div>
+            <button class="btn" onclick="verifyPass()">Verify Pass</button>
+        </div>
+
+        <div id="verification-result" class="form-container hidden">
+            <h2>Verification Result</h2>
+            <div id="result-content">
+                <!-- Result will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        async function verifyPass() {
+            const passId = document.getElementById('passId').value;
+            
+            if (!passId) {
+                showAlert('Please enter a pass ID', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/verify-pass/${passId}`);
+                const result = await response.json();
+
+                const resultDiv = document.getElementById('verification-result');
+                const contentDiv = document.getElementById('result-content');
+
+                resultDiv.classList.remove('hidden');
+
+                if (result.valid) {
+                    contentDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h3>✅ PASS VALID</h3>
+                        </div>
+                        <div class="pass-card approved">
+                            <p><strong>Pass ID:</strong> ${result.pass.id}</p>
+                            <p><strong>Student:</strong> ${result.pass.studentName} (${result.pass.studentId})</p>
+                            <p><strong>Reason:</strong> ${result.pass.reason}</p>
+                            <p><strong>Out Time:</strong> ${formatDate(result.pass.outTime)}</p>
+                            <p><strong>In Time:</strong> ${formatDate(result.pass.inTime)}</p>
+                            <p><strong>Status:</strong> <span class="status status-approved">APPROVED</span></p>
+                            ${result.pass.moderatorRemarks ? `<p><strong>Remarks:</strong> ${result.pass.moderatorRemarks}</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            <h3>❌ PASS INVALID</h3>
+                            <p>${result.message}</p>
+                        </div>
+                        ${result.pass ? `
+                        <div class="pass-card rejected">
+                            <p><strong>Pass ID:</strong> ${result.pass.id}</p>
+                            <p><strong>Student:</strong> ${result.pass.studentName} (${result.pass.studentId})</p>
+                            <p><strong>Status:</strong> <span class="status status-${result.pass.status}">${result.pass.status.toUpperCase()}</span></p>
+                            ${result.pass.moderatorRemarks ? `<p><strong>Remarks:</strong> ${result.pass.moderatorRemarks}</p>` : ''}
+                        </div>
+                        ` : ''}
+                    `;
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Allow Enter key to trigger verification
+        document.getElementById('passId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyPass();
+            }
+        });
+    </script>
+</body>
+</html>

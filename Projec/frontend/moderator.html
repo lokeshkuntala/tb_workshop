@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderator - Gate Pass System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Gate Pass Management System</h1>
+        <p>Moderator Portal</p>
+    </div>
+
+    <div class="container">
+        <div id="pending-requests" class="section">
+            <h2>Pending Pass Requests</h2>
+            <div class="pass-list" id="pendingPassesList">
+                <!-- Pending passes will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Load pending pass requests
+        async function loadPendingPasses() {
+            try {
+                const response = await fetch('http://localhost:3000/api/passes');
+                const passes = await response.json();
+                
+                const pendingPasses = passes.filter(pass => pass.status === 'pending');
+                const passesList = document.getElementById('pendingPassesList');
+                passesList.innerHTML = '';
+
+                if (pendingPasses.length === 0) {
+                    passesList.innerHTML = '<p>No pending pass requests.</p>';
+                    return;
+                }
+
+                pendingPasses.forEach(pass => {
+                    const passCard = document.createElement('div');
+                    passCard.className = 'pass-card pending';
+                    passCard.innerHTML = `
+                        <h3>Pass ID: ${pass.id}</h3>
+                        <p><strong>Student:</strong> ${pass.studentName} (${pass.studentId})</p>
+                        <p><strong>Reason:</strong> ${pass.reason}</p>
+                        <p><strong>Out Time:</strong> ${formatDate(pass.outTime)}</p>
+                        <p><strong>In Time:</strong> ${formatDate(pass.inTime)}</p>
+                        <p><strong>Status:</strong> <span class="status status-pending">PENDING</span></p>
+                        <p><strong>Requested:</strong> ${formatDate(pass.createdAt)}</p>
+                        
+                        <div class="form-group">
+                            <label for="remarks-${pass.id}">Remarks:</label>
+                            <textarea id="remarks-${pass.id}" rows="2" placeholder="Enter remarks (optional)"></textarea>
+                        </div>
+                        
+                        <div style="margin-top: 1rem;">
+                            <button class="btn" onclick="updatePassStatus(${pass.id}, 'approved')" 
+                                    style="background-color: #28a745; margin-right: 10px;">
+                                Approve
+                            </button>
+                            <button class="btn" onclick="updatePassStatus(${pass.id}, 'rejected')" 
+                                    style="background-color: #dc3545;">
+                                Reject
+                            </button>
+                        </div>
+                    `;
+                    passesList.appendChild(passCard);
+                });
+            } catch (error) {
+                console.error('Error loading pending passes:', error);
+            }
+        }
+
+        // Update pass status
+        async function updatePassStatus(passId, status) {
+            const remarks = document.getElementById(`remarks-${passId}`).value;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/passes/${passId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status, moderatorRemarks: remarks })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert(`Pass ${status} successfully!`, 'success');
+                    loadPendingPasses(); // Reload the list
+                } else {
+                    showAlert('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Load passes when page loads
+        document.addEventListener('DOMContentLoaded', loadPendingPasses);
+    </script>
+</body>
+</html>

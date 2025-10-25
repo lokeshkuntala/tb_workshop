@@ -1,0 +1,67 @@
+{
+  "passes": [
+    {
+      "id": 1761381853468,
+      "studentId": "S001",
+      "studentName": "John Doe",
+      "reason": "Medical appointment",
+      "outTime": "2024-01-15T10:00:00.000Z",
+      "inTime": "2024-01-15T14:00:00.000Z",
+      "status": "pending",
+      "moderatorRemarks": "",
+      "createdAt": "2025-10-25T08:44:13.468Z"
+    },
+    {
+      "id": 1761382278859,
+      "studentId": "S001",
+      "studentName": "John Doe",
+      "reason": "Medical appointment",
+      "outTime": "2025-10-25T08:51:18.859Z",
+      "inTime": "2025-10-25T10:51:18.859Z",
+      "status": "pending",
+      "moderatorRemarks": "",
+      "createdAt": "2025-10-25T08:51:18.859Z"
+    },
+    {
+      "id": 1761382845730,
+      "studentId": "S001",
+      "studentName": "John Doe",
+      "reason": "Medical appointment",
+      "outTime": "2025-10-25T09:00:45.730Z",
+      "inTime": "2025-10-25T11:00:45.730Z",
+      "status": "approved",
+      "moderatorRemarks": "Approved for medical appointment",
+      "createdAt": "2025-10-25T09:00:45.731Z",
+      "updatedAt": "2025-10-25T09:01:40.217Z"
+    },
+    {
+      "id": 1761383006474,
+      "studentId": "S002",
+      "studentName": "Jane Smith",
+      "reason": "Personal work",
+      "outTime": "2025-10-25T09:03:26.474Z",
+      "inTime": "2025-10-25T11:03:26.474Z",
+      "status": "rejected",
+      "moderatorRemarks": "Not a valid reason",
+      "createdAt": "2025-10-25T09:03:26.474Z",
+      "updatedAt": "2025-10-25T09:05:03.977Z"
+    }
+  ],
+  "students": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "studentId": "S001"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "studentId": "S002"
+    },
+    {
+      "id": 3,
+      "name": "Mike Johnson",
+      "studentId": "S003"
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student - Gate Pass System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Gate Pass Management System</h1>
+        <p>Student Portal</p>
+    </div>
+
+    <div class="container">
+        <div class="nav">
+            <button class="nav-button" onclick="showSection('request-pass')">Request Pass</button>
+            <button class="nav-button" onclick="showSection('my-passes')">My Passes</button>
+        </div>
+
+        <!-- Request Pass Section -->
+        <div id="request-pass" class="section">
+            <div class="form-container">
+                <h2>Request Gate Pass</h2>
+                <form id="passRequestForm">
+                    <div class="form-group">
+                        <label for="studentId">Student ID</label>
+                        <input type="text" id="studentId" required placeholder="Enter your student ID (e.g., S001)">
+                    </div>
+                    <div class="form-group">
+                        <label for="reason">Reason for Pass</label>
+                        <textarea id="reason" rows="4" required placeholder="Explain why you need the gate pass"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="outTime">Expected Out Time</label>
+                        <input type="datetime-local" id="outTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inTime">Expected In Time</label>
+                        <input type="datetime-local" id="inTime" required>
+                    </div>
+                    <button type="submit" class="btn">Submit Request</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- My Passes Section -->
+        <div id="my-passes" class="section hidden">
+            <div class="form-container">
+                <h2>My Pass Requests</h2>
+                <div class="pass-list" id="myPassesList">
+                    <!-- Pass requests will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Set default datetime values to current time
+        const now = new Date();
+        const later = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+        
+        document.getElementById('outTime').value = now.toISOString().slice(0, 16);
+        document.getElementById('inTime').value = later.toISOString().slice(0, 16);
+
+        // Handle pass request form submission
+        document.getElementById('passRequestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                studentId: document.getElementById('studentId').value,
+                reason: document.getElementById('reason').value,
+                outTime: new Date(document.getElementById('outTime').value).toISOString(),
+                inTime: new Date(document.getElementById('inTime').value).toISOString()
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/passes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('Pass request submitted successfully! Your pass ID: ' + result.id, 'success');
+                    document.getElementById('passRequestForm').reset();
+                    loadMyPasses();
+                } else {
+                    showAlert('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'error');
+            }
+        });
+
+        // Load student's pass requests
+        async function loadMyPasses() {
+            try {
+                const response = await fetch('http://localhost:3000/api/passes');
+                const passes = await response.json();
+                
+                const studentId = document.getElementById('studentId').value;
+                const myPasses = passes.filter(pass => pass.studentId === studentId);
+                
+                const passesList = document.getElementById('myPassesList');
+                passesList.innerHTML = '';
+
+                if (myPasses.length === 0) {
+                    passesList.innerHTML = '<p>No pass requests found.</p>';
+                    return;
+                }
+
+                myPasses.forEach(pass => {
+                    const passCard = document.createElement('div');
+                    passCard.className = `pass-card ${pass.status}`;
+                    passCard.innerHTML = `
+                        <h3>Pass ID: ${pass.id}</h3>
+                        <p><strong>Reason:</strong> ${pass.reason}</p>
+                        <p><strong>Out Time:</strong> ${formatDate(pass.outTime)}</p>
+                        <p><strong>In Time:</strong> ${formatDate(pass.inTime)}</p>
+                        <p><strong>Status:</strong> <span class="status status-${pass.status}">${pass.status.toUpperCase()}</span></p>
+                        ${pass.moderatorRemarks ? `<p><strong>Remarks:</strong> ${pass.moderatorRemarks}</p>` : ''}
+                        <p><strong>Created:</strong> ${formatDate(pass.createdAt)}</p>
+                    `;
+                    passesList.appendChild(passCard);
+                });
+            } catch (error) {
+                console.error('Error loading passes:', error);
+            }
+        }
+
+        // Show my passes section when button is clicked
+        document.querySelector('button[onclick="showSection(\'my-passes\')"]').addEventListener('click', loadMyPasses);
+    </script>
+</body>
+</html>
